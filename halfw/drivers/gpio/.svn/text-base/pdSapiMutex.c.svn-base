@@ -1,0 +1,250 @@
+/******************************************************************************* 
+* FileName : pdSapiMutex.c
+* Description : This file contains definitions of pdSapiMutex functions,
+* 		data structures and data memberes.
+* 
+*******************************************************************************/ 
+/*============================================================================*/ 
+/* INCLUDES */ 
+/*============================================================================*/ 
+#include <stdio.h> 
+#include <sys/types.h>
+#include <pthread.h>
+#include "pdSapiMutex.h"
+#include "pdErrorTypes.h"
+/*==========================================================================*/ 
+/* PRIVATE DATA */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* LOCAL TYPES & DEFINES */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* LOCAL DATA */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* LOCAL FUNCTIONS PROTOTYPES */ 
+/*============================================================================*/ 
+
+/*============================================================================*/ 
+/* EXPORTED FUNCTIONS */ 
+/*============================================================================*/ 
+
+/*============================================================================*/ 
+/* PRIVATE FUNCTIONS */ 
+/*============================================================================*/ 
+
+/*============================================================================*/ 
+/* LOCAL FUNCTIONS */ 
+/*============================================================================*/ 
+/*============================================================================== 
+* @START 
+* Function: pdSapiMutex_init
+* IN : mutex_t *mutex - Pointer to mutex structure
+* OUT : mutex
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          1 - on failure
+* INFO : Initialize a mutex. 
+* @END 
+*============================================================================*/ 
+int pdSapiMutex_init(pthread_mutex_t *mutex)
+{
+    int errCode = PD_FAILURE;
+    if (mutex)
+    {
+        if (!pthread_mutex_init(mutex, NULL))
+        {
+			#ifdef DEBUG_MUTEX
+        		printf("INFO: pdSapiMutex_init()- Initialized the mutex");
+			#endif
+        	return PD_OK;
+        }
+        else
+        {
+			#ifdef DEBUG_MUTEX
+        		printf("ERROR: pdSapiMutex_init() - Failed to initialize the mutex");
+			#endif
+        	errCode = PD_EBUSY;
+        }
+    }
+
+    return errCode;
+} /* End of pdSapiMutex_init*/
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_lock
+* IN :  mutex_t *mutex - Pointer to Mutex structure
+* OUT : mutex - mutex released
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Lock a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_lock(pthread_mutex_t *mutex)
+{
+    int errCode;
+	
+    if (mutex)
+    {
+        if(pthread_mutex_lock(mutex) == PD_OK)
+        {
+			#ifdef DEBUG_MUTEX
+       	    	printf("INFO:pdSapiMutex_lock() - Successfully acquired mutex");
+			#endif
+            return PD_OK;
+        }
+        else
+        {
+			#ifdef DEBUG_MUTEX
+            	printf("ERROR:pdSapiMutex_lock() - Failed to acquire mutex");
+			#endif
+       	    errCode = PD_EBUSY;
+        }
+     }
+     else
+     {   
+		 #ifdef DEBUG_MUTEX
+         	printf("ERROR:pdSapiMutex_lock()- Mutex is null");      
+		 #endif
+         errCode = PD_EINVAL;
+     } 
+     return errCode;
+}/*End of pdSapiMutex_lock*/
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_unlock
+* IN :  mutex_t *mutex - Pointer to mutex datastructure
+* OUT : mutex acquired
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Unlock a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_unlock(pthread_mutex_t *mutex)
+{
+    int errCode;
+
+    if (mutex)
+    {
+        if(pthread_mutex_unlock(mutex) == PD_OK)
+        {
+			#ifdef DEBUG_MUTEX
+       	    	printf("INFO:pdSapiMutex_unlock()- Successfully unlocked the mutex");
+			#endif
+            return PD_OK;
+        }
+        else
+        {
+			#ifdef DEBUG_MUTEX
+            	printf("ERROR:pdSapiMutex_unlock() - Failed to unlock the mutex");
+			#endif
+            errCode = PD_EBUSY;
+        }
+
+    }
+    else
+    {
+		#ifdef DEBUG_MUTEX
+        	printf("ERROR:pdSapiMutex_unlock()- Mutex is null");
+		#endif
+        errCode = PD_EINVAL;
+    }	   
+    return errCode;
+}/*End of pdSapiMutex_unlock*/
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_trylock
+* IN : mutex_t *mutex - Pointer to mutex datastructure
+* OUT : mutex acquired
+* PRE : None 
+* POST : None 
+* RETURN : 0 - On failure
+*          1 - On success
+* INFO : Try locking a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_trylock(pthread_mutex_t *mutex)
+{
+    int errCode;
+	
+    if (mutex)
+    {
+    	if(pthread_mutex_trylock(mutex) == PD_OK)
+    	{
+			#ifdef DEBUG_MUTEX
+    	    	printf("INFO: pdSapiMutex_trylock() - mutex lock is acquired ");
+			#endif
+    	    return PD_OK;
+    	}
+    	else
+    	{
+			#ifdef DEBUG_MUTEX
+    			printf("ERROR: pdSapiMutex_trylock() - Failed to acquire the lock");
+			#endif
+    		errCode = PD_EBUSY;
+    	}
+    }
+    else
+    {   
+		#ifdef DEBUG_MUTEX
+        	printf("ERROR:pdSapiMutex_trylock()- Mutex is null");      
+		#endif
+        errCode = PD_EINVAL;
+    } 
+    return errCode;
+}/*End of pdSapiMutex_trylock*/
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_destroy
+* IN :  mutex_t *mutex - Pointer to mutex datastructure
+* OUT : mutex - mutex released
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Destroy a mutex.
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_destroy(pthread_mutex_t *mutex)
+{
+    int errCode;
+	
+    if (mutex)
+    {
+        if(pthread_mutex_destroy(mutex) == PD_OK)
+	{
+		#ifdef DEBUG_MUTEX
+	    	printf("INFO:pdSapiMutex_destroy()- Mutex is destroyed");
+		#endif
+	    return PD_OK;
+	}
+	else
+	{
+		#ifdef DEBUG_MUTEX
+	    	printf("ERROR:pdSapiMutex_destroy()- Failed to destroy mutex");
+		#endif
+	    errCode = PD_EBUSY;
+	}
+    }
+    else
+    {
+		#ifdef DEBUG_MUTEX
+    		printf("ERROR:pdSapiMutex_destroy()- Mutex is null");
+		#endif
+    	errCode = PD_EINVAL;
+    }
+    return errCode;
+}/*End of pdSapiMutex_destroy*/
+
+
+

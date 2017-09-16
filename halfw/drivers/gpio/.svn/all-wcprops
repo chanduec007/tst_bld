@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/8195/Sahara/trunk/apps/sapi/infra
+END
+pdSapiFile.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/7838/Sahara/trunk/apps/sapi/infra/pdSapiFile.c
+END
+pdSapiSock.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/8195/Sahara/trunk/apps/sapi/infra/pdSapiSock.c
+END
+pdSapiTimer.c
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/8066/Sahara/trunk/apps/sapi/infra/pdSapiTimer.c
+END
+pdSapiMutex.c
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/8195/Sahara/trunk/apps/sapi/infra/pdSapiMutex.c
+END
+pdSapiPthread.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/7831/Sahara/trunk/apps/sapi/infra/pdSapiPthread.c
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/8174/Sahara/trunk/apps/sapi/infra/Makefile
+END
+pdSapiUart.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/7831/Sahara/trunk/apps/sapi/infra/pdSapiUart.c
+END

@@ -1,0 +1,74 @@
+#include "pdSapiTimer.h"
+int main()
+{
+
+	int returnValue = PD_FAILURE, timeout = 15;
+	uint seconds = 10, useconds = 1000;
+
+	returnValue = pdSapiTimer_sleep(seconds);
+	if(returnValue == PD_OK)
+	{
+		printf("sleep success\n");
+	}
+	else
+	{
+		printf("sleep failure\n");
+	}
+
+	returnValue = PD_FAILURE;
+	returnValue = pdSapiTimer_usleep(useconds);
+	if(returnValue == PD_OK)
+        {
+                printf("usleep success\n");
+        }
+        else
+        {
+                printf("usleep failure\n");
+        }
+
+
+	returnValue = PD_FAILURE;
+	struct tm currentTime;
+	returnValue = pdSapiClock_getTime(&currentTime);
+	if(returnValue == PD_OK)
+	{
+		printf("pdSapiTimer_getTime() success returns %d \n", returnValue);
+	}
+	else
+	{
+		printf("pdSapiTimer_getTime() failure returns %d \n", returnValue);
+	}
+
+
+	struct tm myTime;
+	myTime.tm_sec = 20;    // Seconds
+	myTime.tm_min = 45;    // Minutes
+	myTime.tm_hour = 13;   // Hours
+	myTime.tm_mday = 14;      // Day of Month
+	myTime.tm_mon = 8;     // Month
+	myTime.tm_year = 108; // Year
+
+	returnValue = PD_FAILURE;
+	returnValue = pdSapiClock_setTime(&myTime);
+	if(returnValue == PD_OK)
+	{
+		printf("pdSapiTimer_setTime() success returns %d \n", returnValue);
+	}
+	else
+	{
+		printf("pdSapiTimer_setTime() failure returns %d \n", returnValue);
+	}
+
+	returnValue = PD_FAILURE;
+	returnValue = pdSapiWatchdog_reset(&timeout);
+	if(returnValue == PD_OK)
+        {
+                printf("watchdog success timeout = %d\n", timeout);
+        }
+        else
+        {
+                printf("watchdog failure\n");
+        }
+
+	return 0;
+}

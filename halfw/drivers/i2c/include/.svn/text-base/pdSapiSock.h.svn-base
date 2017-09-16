@@ -1,0 +1,361 @@
+/******************************************************************************* 
+* FileName : pdSapiSock.h 
+* Description : This file contains sapi socket function declarations, 
+* 		datastructures and external includes.
+*******************************************************************************/ 
+#ifndef PDSAPISOCK_H 
+#define PDSAPISOCK_H 
+/******************************************************************************* 
+*******************************************************************************/ 
+/*============================================================================*/ 
+/* INCLUDES */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* EXPORTED TYPES & DEFINES */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* PRIVATE DATA */ 
+/* This private data is applicable only for internal header file */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* EXPORTED FUNCTION PROTOTYPES */ 
+/*============================================================================*/ 
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_init 
+* IN : 	 int domain - specifies a communication domain
+*	 int type - specifies communication semantics
+*        int protocol - specifies particular protocol to be used for the socket
+* OUT : int sockfd 
+* PRE : None 
+* POST : None 
+* RETURN : 
+*	   PD_OK on success
+*	   PD_FALIURE on failure 
+* INFO : Create an endpoint for communication. 
+
+* @END 
+*============================================================================*/ 
+int pdSapiSock_init(int domain, int type, int protocol);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_connect 
+* IN :   int sockfd - address specified by addr 
+*        const struct sockaddr *addr - address to which datagrams sent
+*        socklen_t addrLen - specifies the size of the addr 
+* OUT : int sockfd - socket descriptor.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*	   PD_OK on success
+*	   PD_FAILURE on failure 
+* INFO : Initiate a connection on socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_connect(int sockfd, const struct sockaddr *addr, socklen_t addrLen);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_bind 
+* IN :   int sockfd - address specified by addr 
+*        const struct sockaddr *addr - address to which datagrams sent
+*        socklen_t addrLen - specifies the size of the addr 
+*        int mutexid - mutex number
+* OUT : int sockfd - socket descriptor.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Bind a name to a socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_bind(int sockfd, const struct sockaddr *addr, socklen_t addrLen, int mutexid);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_listen 
+* IN :   int sockfd - address specified by addr 
+*        int backlog - defines the maximum length to which the queue of
+*       		       pending connections for sockfd may grow. 
+*        int mutexid - mutex number
+* OUT : int sockfd - socket descriptor.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Listen for connections on a socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_listen(int sockfd, int backlog, int mutexid); 
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_accept 
+* IN :   int sockfd - address specified by addr 
+*        const struct sockaddr *addr - address to which datagrams sent
+*        socklen_t addrLen - specifies the size of the addr 
+*        int mutexid - mutex number
+* OUT : int sockfd - socket descriptor.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Accepts connections on a socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_accept(int sockfd, struct sockaddr *addr, socklen_t *addrLen, int mutexid);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_send 
+* IN :   int sockfd - address specified by addr 
+*        const void *buf - address to which datagrams sent
+*        size_t len - specifies the size of the data 
+*        int flags - specifies bitwise OR of zero or more socket flags.
+*        int mutexid - mutex number
+* OUT : size_t count - Number of characters sent.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Sends message on a socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_send(int sockfd, const void *buf, size_t len, int flags, int mutexid); 
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_recv 
+* IN :   int sockfd - address specified by addr 
+*        const void *buf - address to which datagrams sent
+*        size_t len - specifies the size of the data 
+*        int flags - specifies bitwise OR of zero or more socket flags.
+*        int mutexid - mutex number
+* OUT : size_t count - Number of characters sent.
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Receives messages from socket. 
+
+* @END 
+*============================================================================*/
+int pdSapiSock_recv(int sockfd, const void *buf, size_t len, int flags, int mutexid);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiSock_close 
+* IN :   int sockfd - address specified by addr 
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 
+*          PD_OK on success
+*          PD_FAILURE on failure 
+* INFO : Close the socket descriptor
+
+* @END 
+*============================================================================*/
+int pdSapiSock_close(int sockfd);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSLSrv_init
+* IN :   None.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - SSL context
+*          On failure - errCode
+* INFO : This interface provides initiation of SSL library, algorithm and instance of server.
+
+* @END
+*============================================================================*/
+SSL_CTX* pdSapiSSLSrv_init(void);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSL_showCerts
+* IN :   SSL *ssl - SSL data
+* OUT : Cert - Server certificate
+* PRE : None
+* POST : None
+* RETURN : None
+* INFO : Close the socket descriptor
+
+* @END
+*============================================================================*/
+void pdSapiSSL_showCerts(SSL* ssl);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSLSrv_listen
+* IN :  int port - port number
+* 		int mutexid - mutexid
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - Socket descriptor
+*          On failure - error message
+* INFO : This interface is used to initialize the socket, bind to port and listen on specified port.
+
+* @END
+*============================================================================*/
+int pdSapiSSLSrv_listen(int port, int mutexid);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSslRoot_service
+* IN :   None
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - ONE
+*          On failure - ZERO
+* INFO : Close the socket descriptor
+
+* @END
+*============================================================================*/
+int pdSapiSslRoot_service();
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSL_loadCert
+* IN :   SSL_CTX *ctx - SSL context
+* 		 char *CertFile - SSL certificate
+* 		 char *Keyfile	- RSA Key
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - PD_OK
+*          On failure - errCode
+* INFO : This interface is used to load and verify the certificate.
+
+* @END
+*============================================================================*/
+void pdSapiSSL_loadCert(SSL_CTX* ctx, char* CertFile, char* KeyFile);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSL_free
+* IN :   SSL_CTX *ctx - SSL context
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : None
+* INFO : This interface is used to free the SSL context resources.
+
+* @END
+*============================================================================*/
+void pdSapiSSL_free(SSL *ssl);
+
+/*==============================================================================
+* @START
+* Function: pdSapiSSLCtx_free
+* IN :   SSL_CTX *ctx - SSL context
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : None
+* INFO : This interface is used to free the SSL context resources.
+
+* @END
+*============================================================================*/
+void pdSapiSSLCtx_free(SSL_CTX *ctx);
+
+/*==============================================================================
+* @START
+* Function:pdSapiSSL_new
+* IN :   SSL_CTX *ctx - SSL context
+* 		 int sockFd - client socket descriptor
+* OUT : SSL *ssl - ssl data
+* PRE : None
+* POST : None
+* RETURN : On success - SSL data
+* 		   On failure - NULL
+* INFO : This interface is used to get new SSL state with context.
+
+* @END
+*============================================================================*/
+SSL *pdSapiSSL_new(SSL_CTX *ctx, int sockFd);
+
+/*==============================================================================
+* @START
+* Function: pdSapiSSL_accept
+* IN :   SSL_CTX *ctx - SSL context
+* OUT : SSL *ssl - ssl data
+* PRE : None
+* POST : None
+* RETURN : On success - Client connection
+* 		   On failure - ZERO
+* INFO : This interface is used to accept new SSL connection.
+
+* @END
+*============================================================================*/
+int pdSapiSSL_accept(SSL *ssl);
+
+/*==============================================================================
+* @START
+* Function: pdSapiSSL_read
+* IN :   SSL *ssl - SSL data
+* 		 void *buf - buffer
+* 		 int num - bytes of data
+* OUT : SSL *ssl - ssl data
+* PRE : None
+* POST : None
+* RETURN : On success - Number of bytes
+* 		   On failure - error
+* INFO : This interface is used to read the bytes of data.
+
+* @END
+*============================================================================*/
+int pdSapiSSL_read(SSL *ssl, void *buf, int num);
+
+/*==============================================================================
+* @START
+* Function: pdSapiSSL_getFd
+* IN :   SSL *ssl - SSL data
+* OUT : SSL *ssl - ssl data
+* PRE : None
+* POST : None
+* RETURN : On success - SSL data
+* 		   On failure - error
+* INFO : This interface is used to get the SSL file descriptor.
+
+* @END
+*============================================================================*/
+int pdSapiSSL_getFd(const SSL *s);
+
+/*==============================================================================
+* @START
+* Function: pdSapiSSL_read
+* IN :   SSL *ssl - SSL data
+* 		 void *buf - buffer
+* 		 int num - bytes of data
+* OUT : SSL *ssl - ssl data
+* PRE : None
+* POST : None
+* RETURN : On success - Number of bytes
+* 		   On failure - error
+* INFO : This interface is used to read the bytes of data.
+
+* @END
+*============================================================================*/
+int pdSapiSSL_write(SSL *ssl, const void *buf, int num);
+
+/*============================================================================*/ 
+/* PRIVATE FUNCTION PROTOTYPES */ 
+/* This private fun is applicable only for internal header file */ 
+/*============================================================================*/
+#endif /* _PDSAPIINFRASOCK_H */

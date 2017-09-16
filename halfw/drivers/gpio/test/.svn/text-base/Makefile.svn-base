@@ -1,0 +1,40 @@
+#Make file
+#Use 'make testFile' to generage testFile binary to be tested on board.
+#Use 'make testTimer' to generage testTimer binary to be tested on board.
+#Use 'make testClean' to delete all binary files and object files.
+
+include ../../../../setup/properties.mk
+
+SRCS=$(wildcard *.c)
+ALLOBJS=$(patsubst %.c,target/%.o,$(SRCS))
+ALL=target/
+
+CFLAGS+= -I../include -I../../../include -D_REENTRANT
+CFLAGS+= -I../../../../kernel/linux-3.2.0/arch/arm/include/asm
+
+LDFLAGS+=-lpthread
+
+
+#all:$(ALLOBJS)
+
+#target/cli: $(ALLOBJS)
+#	@echo "LD $@"
+#	@echo "	@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) "
+#	@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
+
+testFile: pdSapiFileTest.o
+	@echo "@$(CC) $(CFLAGS) -g pdSapiFileTest.c -o testFile $(LDFLAGS)"
+	@$(CC) $(CFLAGS) -g pdSapiFileTest.c ../target/*.o -o testFile $(LDFLAGS)
+
+
+
+testTimer: pdSapiTimerTest.o
+	@echo "@$(CC) $(CFLAGS) -g pdSapiTimerTest.c -o testTimer $(LDFLAGS)"
+	@$(CC) $(CFLAGS) -g pdSapiTimerTest.c ../target/*.o -o testTimer $(LDFLAGS)
+
+testClean:
+	rm -rf *.o 
+	rm -rf testFile
+	rm -rf testTimer
+
+include ../../../../setup/common.mk

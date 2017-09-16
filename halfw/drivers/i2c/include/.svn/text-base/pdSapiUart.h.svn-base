@@ -1,0 +1,220 @@
+/******************************************************************************* 
+* FileName : pdSapiUart.h 
+* Description : This file contains SAPI UART function declarations, 
+* 		datastructures and external includes.
+*******************************************************************************/ 
+#ifndef PDSAPIUART_H 
+#define PDSAPIUART_H 
+/******************************************************************************* 
+*******************************************************************************/ 
+/*============================================================================*/ 
+/* INCLUDES */ 
+/*============================================================================*/ 
+#include <stdio.h>
+#include <sys/types.h>
+/*============================================================================*/ 
+/* EXPORTED TYPES & DEFINES */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* PRIVATE DATA */ 
+/* This private data is applicable only for internal header file */ 
+/*============================================================================*/ 
+#define UART00 "/dev/tty00"
+#define UART01 "/dev/tty01"
+#define UART02 "/dev/tty02"
+#define UART03 "/dev/tty03"
+#define UART04 "/dev/tty04"
+#define UART05 "/dev/tty05"
+
+/*============================================================================*/ 
+/* EXPORTED FUNCTION PROTOTYPES */ 
+/*============================================================================*/ 
+/*==============================================================================
+* @START
+* Function:pdSapiUart_open
+* IN :
+*      char *filename - path of the com port specified
+*      int baud - baud rate for com port
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : PD_OK - On success
+*          errCode - On failure
+* INFO : Open a serial console descriptor
+
+* @END
+*============================================================================*/
+int pdSapiUart_open (const char *devtty, const unsigned int bauds);
+
+/*==============================================================================
+* @START
+* Function: pdSapiUart_writeChar
+* IN : int uartfd - serail file decriptor
+*      const char byte - char byte to write to serial port
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - 0
+*          On failure - errCode
+* INFO : Writes character bytes to serial port
+* @END
+*============================================================================*/
+int pdSapiUart_writeChar(int uartfd, const char byte);
+
+/*==============================================================================
+* @START
+* Function: pdSapiUart_writeString
+* IN : int uartfd - serial file descriptor
+*      const char *string - string to be write to serial port
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN : On success - 0
+*          On failure - errCode
+* INFO : Writes string to serial port
+* @END
+*============================================================================*/
+ int pdSapiUart_writeString(int uartfd, const char *string);
+
+ /*==============================================================================
+ * @START
+ * Function: pdSapiUart_write
+ * IN : int uartfd - serial file descriptor
+ *      const void *buffer - data buffer
+ *      const unsigned int bytes - number of bytes to write
+ * OUT : None
+ * PRE : None
+ * POST : None
+ * RETURN : On success - 0
+ *          On failure - errCode
+ * INFO : Writes data buffer of size to serial port
+ * @END
+ *============================================================================*/
+ int pdSapiUart_write(int uartfd, const void *buffer, const unsigned int bytes);
+
+ /*==============================================================================
+ * @START
+ * Function: pdSapiUart_write
+ * IN : int uartfd - serial file descriptor
+ *      char *pByte - character pointer
+ *      unsigned int timeOutms - time out in ms
+ * OUT : None
+ * PRE : None
+ * POST : None
+ * RETURN : On success - 0
+ *          On failure - errCode
+ * INFO : Reads data buffer in specified timeout
+ * @END
+ *============================================================================*/
+ int pdSapiUart_readChar(int uartfd, char *pByte, unsigned int timeOutms);
+
+ /*==============================================================================
+ * @START
+ * Function: pdSapiUart_readStringNoTimeOut
+ * IN : int uartfd - serial file descriptor
+ *      char *string - character array
+ *      char finalchar - last char to write
+ *      unsigned int maxNbytes - max number of bytes
+ * OUT : None
+ * PRE : None
+ * POST : None
+ * RETURN : On success - 0
+ *          On failure - errCode
+ * INFO : Reads data buffer of maxNbytes
+ * @END
+ *============================================================================*/
+  int pdSapiUart_readStringNoTimeOut(int uartfd, char *string,char finalChar,unsigned int maxNbBytes);
+
+  /*==============================================================================
+  * @START
+  * Function: pdSapiUart_readString
+  * IN : int uartfd - serial file descriptor
+  *      char *string - string t be written
+  *      char finalChar - last character to be written
+  *      unsigned int maxNbyte - max number of character
+  *      unsigned int timeOutms - time out in ms
+  * OUT : None
+  * PRE : None
+  * POST : None
+  * RETURN : On success - 0
+  *          On failure - errCode
+  * INFO : Reads data buffer of maxNbytes in specified timeOutms
+  * @END
+  *============================================================================*/
+   int pdSapiUart_readString(int uartfd, char *string,char finalChar,unsigned int maxNbBytes,unsigned int timeOutms);
+
+   /*==============================================================================
+   * @START
+   * Function: pdSapiUart_read
+   * IN : int uartfd - serial file descriptor
+   *      void *buffer - data buffer
+   *      unsigned int maxNbytes - max number of bytes
+   *      unsigned int timeOutms - time out in ms
+   * OUT : None
+   * PRE : None
+   * POST : None
+   * RETURN : On success - 0
+   *          On failure - errCode
+   * INFO : Reads data buffer in specified timeout
+   * @END
+   *============================================================================*/
+   int pdSapiUart_read(int uartfd, void *buffer,unsigned int maxNbBytes,unsigned int timeOutms);
+
+
+   /*==============================================================================
+   * @START
+   * Function:pdSapiUart_initTimer
+   * IN : int uartfd - serial file descriptor
+   * OUT : None
+   * PRE : None
+   * POST : None
+   * RETURN : None
+   * INFO : Initiate the timer
+
+   * @END
+   *============================================================================*/
+   void pdSapiUart_initTimer(void);
+
+   /*==============================================================================
+   * @START
+   * Function:pdSapiUart_elapsedTimems
+   * IN : int uartfd - serial file descriptor
+   * OUT : None
+   * PRE : None
+   * POST : None
+   * RETURN : None
+   * INFO : Set elapsed timeout
+
+   * @END
+   *============================================================================*/
+   unsigned long int pdSapiUart_elapsedTimems(void);
+
+   /*==============================================================================
+   * @START
+   * Function:pdSapiUart_flush
+   * IN : int uartfd - serial file descriptor
+   * OUT : None
+   * PRE : None
+   * POST : None
+   * RETURN : None
+   * INFO : Flush out the serial port
+
+   * @END
+   *============================================================================*/
+   int pdSapiUart_flush(int uartfd);
+
+   /*==============================================================================
+   * @START
+   * Function:pdSapiUart_close
+   * IN : int uartfd - serial file descriptor
+   * OUT : None
+   * PRE : None
+   * POST : None
+   * RETURN : None
+   * INFO : Close opened serial port
+
+   * @END
+   *============================================================================*/
+   int pdSapiUart_close(int uartfd);
+
+#endif

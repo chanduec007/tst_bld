@@ -1,0 +1,120 @@
+/******************************************************************************* 
+* FileName : pdSapiPthread.h
+* Description : This file contains sapi pthread function declarations, 
+* 		datastructures and external includes.
+*******************************************************************************/ 
+#ifndef PDSAPIPTHREAD_H
+#define PDSAPIPTHREAD_H
+/******************************************************************************* 
+*******************************************************************************/ 
+/*============================================================================*/ 
+/* INCLUDES */ 
+/*============================================================================*/ 
+#include <stdio.h>
+#include <sys/types.h>
+#include <pthread.h>
+/*============================================================================*/ 
+/* EXPORTED TYPES & DEFINES */ 
+/*============================================================================*/ 
+
+/*============================================================================*/ 
+/* PRIVATE DATA */ 
+/* This private data is applicable only for internal header file */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* EXPORTED FUNCTION PROTOTYPES */ 
+/*============================================================================*/ 
+/*============================================================================== 
+* @START 
+* Function: pdSapiPthread_create
+* IN : pthread_t *thread - Pointer to Pthread datastructure
+*      void *(start_routine)(void *) - Function pointer
+*      void *arg - Parameters to function
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          errCode - 0n failure
+* INFO : Create a new thread 
+* @END 
+*============================================================================*/
+int pdSapiPthread_create(pthread_t *thread, void *(*start_routine)(void *), void *arg);
+
+/*============================================================================== 
+* @START 
+* Function: pdSapiPthread_attr_init
+* IN : None 
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          errCode - 0n failure
+* INFO : Create a new thread 
+* @END 
+*============================================================================*/
+int pdSapiPthread_attr_init(void);
+
+/*============================================================================== 
+* @START 
+* Function: pdSapiPthread_attr_destroy
+* IN : None 
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          errCode - 0n failure
+* INFO : Create a new thread 
+* @END 
+*============================================================================*/
+int pdSapiPthread_attr_destroy(void);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiPthread_exit
+* IN : pthread_t *thread - Pointer to Pthread datastructure
+*      void **thread_return - Returns a value to calling function
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Terminates a calling thread. 
+
+* @END 
+*============================================================================*/
+void pdSapiPthread_exit(void *thread_return);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiPthread_join
+* IN : pthread_t *thread - Pointer to Pthread datastructure
+*      void **thread_return - Returns a value to calling function
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          errCode - 0n failure
+* INFO : Join with a terminated thread.
+
+* @END 
+*============================================================================*/
+int pdSapiPthread_join(pthread_t thread, void **thread_return);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiPthread_setschedprio
+* IN : pthread_t thread - pointer to thread
+*      int priority - priority of the thread  
+* OUT : None 
+* PRE : None 
+* POST : None 
+* RETURN : 0 - On success
+*          errCode - On failure 
+* INFO : Set scheduling priority of a thread 
+
+* @END 
+*============================================================================*/
+int pdSapiPthread_setschedparam(pthread_t thread, int priority);
+
+
+
+#endif

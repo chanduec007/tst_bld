@@ -1,0 +1,183 @@
+/*******************************************************************************
+* FileName : pdSapiTimer.h
+* Description : This file contains sapi for timer function declarations,
+* 		datastructures and external includes.
+*******************************************************************************/
+#ifndef PDSAPISAPI_TIMER_H
+#define PDSAPISAPI_TIMER_H
+/*******************************************************************************
+*******************************************************************************/
+/*============================================================================*/
+/* INCLUDES */
+/*============================================================================*/
+#include <stdio.h>
+#include <time.h>
+#include "pdErrorTypes.h"
+#include "linux/watchdog.h"
+//#include "fcntl.h"
+#include "errno.h"
+#include "pdMacros.h"
+#include "pdTypeDefs.h"
+
+/*============================================================================*/
+/* EXPORTED TYPES & DEFINES */
+/*============================================================================*/
+#ifndef ZERO
+#define ZERO 0
+#endif
+/*============================================================================*/
+/* PRIVATE DATA */
+
+/* This private data is applicable only for internal header file */
+/*============================================================================*/
+
+/*============================================================================*/
+/* EXPORTED FUNCTION PROTOTYPES */
+/*============================================================================*/
+
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_sleep
+* IN : uint seconds	-	Number of seconds to sleep.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*		On failure -
+*			PD_FAILED_TO_SLEEP	-	If timer failed to sleep for seconds.
+*
+* INFO : This function makes the process sleep for "seconds" given.
+
+* @END
+*============================================================================*/
+int pdSapiTimer_sleep(uint seconds);
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_usleep
+* IN : uint useconds	-	Number of microseconds to sleep
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success -  PD_OK
+*	   On Failure - PD_FAILED_TO_USLEEP -	If timer failed to sleep for useconds.
+*
+* INFO : This function makes the process sleep for "useconds" microseconds.
+
+* @END
+*============================================================================*/
+int pdSapiTimer_usleep(uint useconds);
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_Udelay
+* IN : useconds	-	Number of microseconds to delay the process.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*	   On Failure -
+*	    	PD_FAILED_UDELAY	-	If delay fails for microseconds given.
+*
+* INFO :This function delays the process by "useconds" microseconds.
+* @END
+*============================================================================*/
+int pdSapiTimer_Udelay(unsigned long useconds);
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_Delay
+* IN : seconds	-	Number of seconds to delay the process.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*	   On Failure -
+*	    	PD_FAILED_DELAY	-	If delay fails for seconds given.
+*
+* INFO :This function delays the process by "seconds" seconds.
+* @END
+*============================================================================*/
+int pdSapiTimer_Delay(int seconds);
+
+/*==============================================================================
+* @START
+* Function:pdSapiWatchdog_reset
+* IN :	timeout - time for watchdog counter.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PD_FAILURE
+* INFO :Resets the watchdog time..
+* @END
+*============================================================================*/
+int pdSapiWatchdog_reset(int *timeout);
+
+/*==============================================================================
+* @START
+* Function: pdSapiClock_getTime
+* IN :	None
+* OUT : struct tm* ptm	-	Holds current time and date.
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PD_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Get system date and time.
+* @END
+*============================================================================*/
+int pdSapiClock_getTime(struct tm *ptm);
+
+/*==============================================================================
+* @START
+* Function: pdSapiClock_getTime
+* IN :	struct tm *time - Holds the time and date.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PF_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Set system date and time.
+* @END
+*============================================================================*/
+
+int pdSapiClock_setTime(struct tm *time);
+
+/*==============================================================================
+* @START
+* Function: pdSapiClock_setEpochTime
+* IN :	time_t *epochTime - Holds the epoch time.
+* OUT : None
+* PRE : epoch time shoud be valid.
+* POST : system time is set as per the epoch time.
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PF_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Set system date and time.
+* @END
+*============================================================================*/
+
+int pdSapiClock_setEpochTime(time_t *epochTime);
+
+#endif	/*PDSAPISAPI_TIMER_H*/
+

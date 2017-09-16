@@ -1,0 +1,94 @@
+#include "pdSapiFile.h"
+
+int main()
+{
+	FILE *fp;
+	int returnValue = PD_FAILURE, pdFileNumber = 1;
+	size_t bytesWritten = 0;
+	size_t bytesRead = 0;
+	char *text = "i am a powerdevice file\n", *appendText="I am appended test\n", readText[15], *writeMode = "w+", *path = "/tmp/pdFile";
+	
+	returnValue = pdSapiFile_init(pdFileNumber);
+	if(returnValue == PD_OK)
+	{
+		printf("file init success\n");
+	}
+	else
+	{
+		printf("file init failed\n");
+	}
+
+	returnValue = pdSapiFile_open(path, writeMode, &fp,pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file open success\n");
+        }
+        else
+        {
+                printf("file open failed\n");
+        }
+
+	returnValue = pdSapiFile_write(text, 1,  24, fp, bytesWritten, pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file write success written bytes = %ld\n", bytesWritten);
+        }
+        else
+        {
+                printf("file write failed\n");
+        }
+
+	returnValue = pdSapiFile_seek(fp, 0, SEEK_SET, pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file seek position success\n");
+        }
+        else
+        {
+                printf("file seek position failed\n");
+        }
+
+	pdSapiFile_read(readText, 1, 20, fp, &bytesRead, pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file read success read bytes = %ld\n", bytesRead);
+        }
+        else
+        {
+                printf("file read failed\n");
+        }
+	bytesWritten = 0;
+	returnValue = pdSapiFile_append(fp, 19, appendText , &bytesWritten, pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file read success appended bytes = %ld\n", bytesWritten);
+        }
+        else
+        {
+                printf("file read failed\n");
+        }
+
+	returnValue =pdSapiFile_flush(fp, pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file flush success\n");
+        }
+        else
+        {
+                printf("file flush failed\n");
+        }
+
+	returnValue = pdSapiFile_close(fp,pdFileNumber);
+	if(returnValue == PD_OK)
+        {
+                printf("file close success\n");
+        }
+        else
+        {
+                printf("file close failed\n");
+        }
+
+
+
+	return 0;
+}

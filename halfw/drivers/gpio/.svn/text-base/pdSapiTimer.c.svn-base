@@ -1,0 +1,509 @@
+/*******************************************************************************
+* FileName : pdSapiTimer.c
+* Description : This file contains definitions of pdSapiFile functions,
+* 		data structures and data members.
+*
+*******************************************************************************/
+
+#include "pdErrorTypes.h"
+#include <stdio.h>
+#include <time.h>
+#include <stdbool.h>
+#include <string.h>
+#include </usr/include/unistd.h>
+//#include <delay.h>	/* will take care while working on delay functions	*/
+#include </usr/include/fcntl.h>
+#include <stropts.h>
+#include "linux/watchdog.h"
+#include "pdMacros.h"
+#include "pdErrorTypes.h"
+#include "pdSapiTimer.h"
+#include <sys/time.h>
+#include "pdSapiMutex.h"
+#include "pdDebug.h"
+
+/*
+#ifdef dprintf
+#undef dprintf
+#define dprintf printf
+#endif
+*/
+/*==========================================================================*/
+/* PRIVATE DATA */
+/*============================================================================*/
+
+/*==========================================================================*/
+/* GLOBAL DATA */
+
+pthread_mutex_t pdSapiTimerMutex;
+
+/*	switch to open the watch dog device file	*/
+volatile int pdSapiTimerWatchdogFileOpen = false;
+
+/*	file pointer to watch dog device file	*/
+int pdSapiWatchdogFile = ZERO;
+
+/*============================================================================*/
+/*============================================================================*/
+/* LOCAL TYPES & DEFINES */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL DATA */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL FUNCTIONS PROTOTYPES */
+/*============================================================================*/
+
+/*============================================================================*/
+/* EXPORTED FUNCTIONS */
+/*============================================================================*/
+
+/*============================================================================*/
+/* PRIVATE FUNCTIONS */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL FUNCTIONS */
+/*============================================================================*/
+
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_sleep
+* IN : uint seconds	-	Number of seconds to sleep.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*		On failure -
+*			PD_FAILED_TO_SLEEP	-	If timer failed to sleep for seconds.
+*
+* INFO : This function makes the process sleep for "seconds" given.
+
+* @END
+*============================================================================*/
+int pdSapiTimer_sleep(uint seconds)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	returnValue = sleep(seconds);
+	if(returnValue == ZERO)
+	{
+		rc = PD_OK;
+	}
+	else
+	{
+		dprintf("Failure, timer failed to sleep completely\n");
+		rc = PD_FAILED_TO_SLEEP;
+	}
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_usleep
+* IN : uint useconds	-	Number of microseconds to sleep
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success -  PD_OK
+*	   On Failure - PD_FAILED_TO_USLEEP -	If timer failed to sleep for useconds.
+*
+* INFO : This function makes the process sleep for "useconds" microseconds.
+
+* @END
+*============================================================================*/
+int pdSapiTimer_usleep(uint useconds)
+{
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+
+	returnValue = usleep(useconds);
+
+	if(returnValue == ZERO)
+	{
+		rc = PD_OK;
+	}
+	else
+	{
+		dprintf("Failure, timer failed to usleep completely\n");
+		rc = PD_FAILED_TO_USLEEP;
+	}
+	return rc;
+}
+#if 0
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_Udelay
+* IN : useconds	-	Number of microseconds to delay the process.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*	   On Failure -
+*	    	PD_FAILED_UDELAY	-	If delay fails for microseconds given.
+*
+* INFO :This function delays the process by "useconds" microseconds.
+* @END
+*============================================================================*/
+int pdSapiTimer_Udelay(unsigned long useconds)
+{
+	int rc = PD_FAILURE;
+
+	udelay(useconds);
+
+	if(errno == ZERO)
+	{
+		rc = PD_OK;
+	}
+	else
+	{
+		dprintf("Failure, timer failed to usleep completely\n");
+		rc = PD_FAILED_UDELAY;
+	}
+	return rc;
+}
+
+
+/*==============================================================================
+* @START
+* Function:pdSapiTimer_Delay
+* IN : seconds	-	Number of seconds to delay the process.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   On success –    PD_OK
+*	   On Failure -
+*	    	PD_FAILED_DELAY	-	If delay fails for seconds given.
+*
+* INFO :This function delays the process by "seconds" seconds.
+* @END
+*============================================================================*/
+
+int pdSapiTimer_Delay(int seconds)
+{
+	int rc = PD_FAILURE;
+
+	__delay(seconds);
+
+	if(errno == ZERO)
+	{
+		rc = PD_OK;
+	}
+	else
+	{
+		dprintf("Failure, timer failed to usleep completely\n");
+		rc = PD_FAILED_DELAY;
+	}
+	return rc;
+}
+#endif
+/*==============================================================================
+* @START
+* Function:pdSapiWatchdog_reset
+* IN :	timeout - time for watchdog counter.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PF_FAILURE
+* INFO :Resets the watchdog time..
+* @END
+*============================================================================*/
+
+int pdSapiWatchdog_reset(int *timeout)
+{
+	int rc = PD_FAILURE, returnValue = PD_FAILURE, flags;
+
+	if(pdSapiTimerWatchdogFileOpen == false)
+	{
+		pdSapiWatchdogFile = open("/dev/watchdog", O_WRONLY);
+		if(pdSapiWatchdogFile == -1)
+		{
+			dprintf("Failed to open watch dog timer device file\n");
+			rc = PD_FAILED_TO_OPEN_WATCHDOGTIMER_FILE;
+		}
+		else
+		{
+			flags = WDIOS_ENABLECARD;
+			ioctl(pdSapiWatchdogFile, WDIOC_SETOPTIONS, &flags);
+			pdSapiTimerWatchdogFileOpen = true;
+			returnValue = ioctl(pdSapiWatchdogFile, WDIOC_SETTIMEOUT, timeout);
+			if(returnValue != ZERO)
+			{
+				dprintf("Failed to reset watch dog timer\n");
+				rc = PD_FAILED_TO_RESET_WATCHDOGTIMER;
+			}
+			else
+			{
+				dprintf("The watchdog timeout was set to %d seconds\n", *timeout);
+				rc = PD_OK;
+				sleep(20);
+				rc = PD_OK;
+			}
+		}
+	}
+	else if(pdSapiWatchdogFile != -1)
+	{
+		returnValue = ioctl(pdSapiWatchdogFile, WDIOC_SETTIMEOUT, timeout);
+		if(returnValue != ZERO)
+		{
+			dprintf("Failed to reset watch dog timer\n");
+			rc = PD_FAILED_TO_RESET_WATCHDOGTIMER;
+		}
+		else
+		{
+			dprintf("The watchdog timeout was set to %d seconds\n", *timeout);
+			rc = PD_OK;
+			sleep(20);
+		}
+	}
+	else
+	{
+		dprintf("Failed to open watch dog timer device file\n");
+		rc=PD_FAILED_TO_OPEN_WATCHDOGTIMER_FILE;
+	}
+
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function: pdSapiClock_getTime
+* IN :	None
+* OUT : struct tm* ptm	-	Holds current time and date.
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PD_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Get system date and time.
+* @END
+*============================================================================*/
+int pdSapiClock_getTime(struct tm *ptm)
+{
+	struct tm *ptmlocal;
+	struct timeval tv;
+	char time_string[40];
+	//long milliseconds;
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+
+	returnValue = pdSapiMutex_init(&pdSapiTimerMutex);
+	if(returnValue == PD_OK)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiTimerMutex);
+		if(returnValue == PD_OK)
+		{
+
+			/* Obtain the time of day, and convert it to a tm struct.  */
+			returnValue = gettimeofday (&tv, NULL);
+			if(returnValue != ZERO)
+			{
+				dprintf("Failed to get time of day\n");
+				if(errno == EINVAL)
+				{
+					rc = PD_EINVAL;
+					#ifdef DEBUG_SYSTEM_TIME
+						printf("Failed, Invalid argument \n");
+					#endif
+				}
+				else if(errno == EFAULT)
+				{
+					rc = PD_EFAULT;
+					#ifdef DEBUG_SYSTEM_TIME
+						printf("Failed, Pointer is invalid\n");
+					#endif
+				}
+				else if(errno == EPERM)
+				{
+					rc = PD_EPERM;
+					#ifdef DEBUG_SYSTEM_TIME
+						printf("Failed, permission denied error \n");
+					#endif
+				}
+			}
+			else
+			{
+				ptmlocal = localtime (&tv.tv_sec);
+
+				if(ptmlocal == NULL)
+				{
+					rc = PD_FAILURE;
+					#ifdef DEBUG_SYSTEM_TIME
+						printf("Failed localtime() returned NULL \n");
+					#endif
+				}
+				else
+				{
+					memcpy(ptm, ptmlocal, sizeof(struct tm));
+
+					/* Format the date and time, down to a single second.  */
+					strftime (time_string, sizeof (time_string), "%Y-%m-%d %H:%M:%S", ptm);
+                    
+					/* Compute milliseconds from microseconds.  */
+				//	milliseconds = tv.tv_usec / 1000;
+
+					/* Print the formatted time, in seconds, followed by a decimal point
+					and the milliseconds.  */
+					/*#ifdef DEBUG_SYSTEM_TIME
+						printf ("%s.%03ld\n", time_string, milliseconds);
+					#endif*/
+
+					rc = PD_OK;
+				}
+			}
+			pdSapiMutex_unlock(&pdSapiTimerMutex);
+		}
+		else
+		{
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		rc = PD_MUTEX_INIT_FAILED;
+	}
+	return rc;
+}
+/*==============================================================================
+* @START
+* Function: pdSapiClock_setTime
+* IN :	struct tm *time - Holds the time and date.
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PF_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Set system date and time.
+* @END
+*============================================================================*/
+
+int pdSapiClock_setTime(struct tm *time)
+{
+	struct timeval systime;
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+
+	returnValue = pdSapiMutex_lock(&pdSapiTimerMutex);
+	if(returnValue == PD_OK)
+	{
+
+		time->tm_year=time->tm_year - 1900;
+		time->tm_mon=time->tm_mon - ONE;
+
+		systime.tv_sec = mktime(time);
+		systime.tv_usec = 0;
+
+		if(systime.tv_sec == MINUS_ONE)
+		{
+			rc = PD_FAILURE;
+			dprintf("Failed, mktime() returned -1\ntime zone = %d", time->tm_isdst);
+		}
+		else
+		{
+			returnValue = settimeofday(&systime, NULL);
+
+			if(returnValue != ZERO)
+			{
+				dprintf("Failed to get time of day\n");
+				if(errno == EINVAL)
+				{
+					rc = PD_EINVAL;
+					dprintf("Failed, Invalid argument \n");
+				}
+				else if(errno == EFAULT)
+				{
+					rc = PD_EFAULT;
+					dprintf("Failed, Pointer is invalid\n");
+				}
+				else if(errno == EPERM)
+				{
+					rc = PD_EPERM;
+					dprintf("Failed, permission denied error \n");
+				}
+			}
+			else
+			{
+				rc = PD_OK;
+			}
+
+		}
+		pdSapiMutex_unlock(&pdSapiTimerMutex);
+	}
+	else
+	{
+		rc = PD_RESOURCE_BUSY;
+	}
+
+	return rc;
+
+}
+
+/*==============================================================================
+* @START
+* Function: pdSapiClock_setEpochTime
+* IN :	time_t *epochTime - Holds the epoch time.
+* OUT : None
+* PRE : epoch time shoud be valid.
+* POST : system time is set as per the epoch time.
+* RETURN :
+*		On success – PD_OK
+*		On Failure - PF_FAILURE
+*		PD_EINVAL - If invalid argument.
+*		PD_EFAULT - If invalid pointer.
+*		PD_EPERM - If permission is denied
+*
+* INFO :Set system date and time.
+* @END
+*============================================================================*/
+
+int pdSapiClock_setEpochTime(time_t *epochTime)
+{
+	struct timeval systime;
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+
+	systime.tv_sec = *epochTime;
+	systime.tv_usec = 0;
+
+
+	returnValue = settimeofday(&systime, NULL);
+
+	if(returnValue != ZERO)
+	{
+		dprintf("Failed to get time of day\n");
+		if(errno == EINVAL)
+		{
+			rc = PD_EINVAL;
+			dprintf("Failed, Invalid argument \n");
+		}
+		else if(errno == EFAULT)
+		{
+			rc = PD_EFAULT;
+			dprintf("Failed, Pointer is invalid\n");
+		}
+		else if(errno == EPERM)
+		{
+			rc = PD_EPERM;
+			dprintf("Failed, permission denied error \n");
+		}
+	}
+	else
+	{
+		rc = PD_OK;
+	}
+
+	return rc;
+}

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/7882/Sahara/trunk/apps/sapi/infra/test
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/7838/Sahara/trunk/apps/sapi/infra/test/Makefile
+END
+pdSapiFileTest.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/7838/Sahara/trunk/apps/sapi/infra/test/pdSapiFileTest.c
+END
+pdSapiTimerTest.c
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/7882/Sahara/trunk/apps/sapi/infra/test/pdSapiTimerTest.c
+END

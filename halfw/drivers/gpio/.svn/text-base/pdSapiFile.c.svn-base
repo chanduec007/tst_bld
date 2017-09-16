@@ -1,0 +1,505 @@
+/*******************************************************************************
+* FileName : pdSapiFile.c
+* Description : This file contains definitions of pdSapiFile functions,
+* 		data structures and data members.
+*
+*******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include "pdSapiMutex.h"
+#include "pdSapiFile.h"
+#include "pdMacros.h"
+#include "pdTypeDefs.h"
+
+/*==========================================================================*/
+/* PRIVATE DATA */
+/*============================================================================*/
+
+/*==========================================================================*/
+/* GLOBAL DATA */
+
+/* Change value of  MAX_FILE_OPEN_ALLOWED in pdMacros.h */
+pthread_mutex_t pdSapiFileMutex[MAX_FILE_OPEN_ALLOWED];
+
+/*============================================================================*/
+/*============================================================================*/
+/* LOCAL TYPES & DEFINES */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL DATA */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL FUNCTIONS PROTOTYPES */
+/*============================================================================*/
+
+/*============================================================================*/
+/* EXPORTED FUNCTIONS */
+/*============================================================================*/
+
+/*============================================================================*/
+/* PRIVATE FUNCTIONS */
+/*============================================================================*/
+
+/*============================================================================*/
+/* LOCAL FUNCTIONS */
+/*============================================================================*/
+
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_init
+* IN : int pfFileNumber	//	Every file will have a internal file number to have mutex initialization
+* OUT : None
+* PRE : None
+* POST : None
+* RETURN :
+*	   PD_OK	-	On success
+*	   PD_FALIURE	-	On failure
+*	   PD_REACHED_FILE_OPEN_LIMIT	-	Number of files opened reached max limit
+* INFO : Create a mutex for file related operations.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_init(int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+
+	if(pdFileNumber <= MAX_FILE_OPEN_ALLOWED)
+	{
+		returnValue = pdSapiMutex_init(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue == PD_OK)
+		{
+			rc = PD_OK;
+		}
+		else
+		{
+			dprintf("Failed to init file mutex\n");
+			rc = PD_MUTEX_INIT_FAILED;
+		}
+	}
+	else
+	{
+		dprintf("Failed, file open reached max limit \n");
+		rc = PD_REACHED_FILE_OPEN_LIMIT;
+	}
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_open
+* IN : const char *path - User requested path with file name to be created.
+* 		const char *mode - file to be open in provided mode.
+* 		FILE **fp - pointer to file pointer to be opened.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : File *fp
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init
+* POST : None
+* RETURN :
+*	   PD_OK	-	on success
+*	   PD_FALIURE	-	on failure
+*	   PD_RESOURCE_BUSY	-	if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : Create a file and return file pointer.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_open(const char *path, const char *mode, FILE **fp, int pdFileNumber)
+{
+	
+	int rc = PD_FAILURE, returnValue = PD_FAILURE;
+	if(path != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue == PD_OK)
+		{
+			*fp = fopen(path, mode);
+			if(fp == NULL)
+			{
+				dprintf("Failed to open file %s\n", path);
+				rc = PD_FAILED_TO_OPEN_FILE;
+			}
+			else
+			{
+				rc = PD_OK;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed file open path is NULL\n");
+		rc = PD_EINVAL;
+	}
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_read
+* IN : void *ptr - pointer to data read.
+* 		unit size - Size of each element to be read.
+* 		size_t count - Number of bytes to be read.
+* 		FILE * stream - pointer to file.
+* 		size_t *const bytesRead - Number of bytes read after fileread.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : size_t *const bytesRead
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : None
+* RETURN :
+*	   PD_OK	-	 on success
+*	   PD_FALIURE	-	 on failure
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : Read count bytes from file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_read(void *ptr, int size, size_t count, FILE *stream, size_t *const bytesRead, int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	if(stream != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue == ZERO)
+		{
+			*bytesRead = fread(ptr, size, count, stream);
+
+			if(*bytesRead <= count && *bytesRead != EOF)
+			{
+				rc = PD_OK;
+			}
+			else
+			{
+				dprintf("Failed to read file \n");
+				rc = PD_FAILED_TO_READ_FILE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed, file pointer is invalid\n");
+		rc = PD_EINVAL;
+	}
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_write
+* IN : void *ptr - pointer to data to be written.
+* 		const size_t size - Size of each element to be written.
+* 		const size_t nmemb - Number of bytes to be written.
+* 		FILE * stream - pointer to file.
+* 		size_t *const bytesWritten - Number of bytes written.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : size_t *const bytesWritten
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : None
+* RETURN :
+*	   PD_OK on success
+*	   PD_FALIURE on failure
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : write nmemb bytes to file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_write(const void *ptr, int size,  size_t nmemb, FILE *stream, size_t bytesWritten, int pdFileNumber)
+{
+	int rc = PD_OK, returnValue=PD_FAILURE;
+	if(stream != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue  == ZERO)
+		{
+			bytesWritten = fwrite(ptr, size, nmemb, stream);
+			returnValue = fflush(stream);
+			if((bytesWritten == nmemb) || (returnValue == ZERO))
+			{
+				rc = PD_OK;
+			}
+			else
+			{
+				dprintf("Failed to write to file\n");
+				rc = PD_FAILED_TO_WRITE_FILE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed file pointer is NULL to write\n");
+		rc = PD_EINVAL;
+	}
+
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_close
+* IN : 	FILE * fp - pointer to file.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : None
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : None
+* RETURN :
+*	   PD_OK	-	on success
+*	   PD_FALIURE	-	on failure
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : flush and close the file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_close(FILE *fp, int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	if(fp != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue == ZERO)
+		{
+			returnValue = fflush(fp);
+			if(returnValue == ZERO)
+			{
+				returnValue = fclose(fp);
+				if(returnValue == ZERO)
+				{
+					rc = PD_OK;
+				}
+				else
+				{
+					dprintf("Failed to close the file \n");
+					rc = PD_FAILED_TO_CLOSE_FILE;
+				}
+			}
+			else
+			{
+				dprintf("Failed failed to flush file before closing\n");
+				rc = PD_FAILURE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed file pointer in NULL to close\n");
+		rc = PD_EINVAL;
+	}
+
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_seek
+* IN : FILE *fp - pointer to file.
+* 		long int	-	 offset - Offset number to move from the origin.
+* 		int origin	-	SEEK_SET	Beginning of file
+						SEEK_CUR	Current position of the file pointer
+						SEEK_END	End of file *
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : None
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : Current position of file pointer in file is changed.
+* RETURN :
+*	   PD_OK	-	on success
+*	   PD_FALIURE	-	on failure
+*	   PD_FAILED_TO_SEEK_FILE	-	If fseek() call failed.
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : Append count bytes to file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_seek(FILE *fp, long int offset, int origin, int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	if(fp != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue  == ZERO)
+		{
+			returnValue = fseek(fp, offset, origin );
+			if(returnValue == ZERO)
+			{
+				rc = PD_OK;
+			}
+			else
+			{
+				dprintf("Failed to set seek position in file\n");
+				rc = PD_FAILED_TO_SEEK_FILE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed, file pointer is NULL to append\n");
+		rc = PD_EINVAL;
+	}
+
+	return rc;
+}
+/*==============================================================================
+* @START
+* Function:pdSapiFile_append
+* IN : FILE *fp - pointer to file.
+* 		const int count - Size of each element to be written.
+* 		const void *ptr - pointer to bytes to be written.
+* 		size_t *const bytesWritten - Number of bytes written.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : size_t *const bytesWritten
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : None
+* RETURN :
+*	   PD_OK	-	on success
+*	   PD_FALIURE	-	on failure
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : Append count bytes to file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_append(FILE *fp, const int count, const void *ptr, size_t *const bytesWritten, int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	if(fp != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue  == ZERO)
+		{
+			returnValue = fseek(fp, ZERO, SEEK_END);
+			if(returnValue == ZERO)
+			{
+				*bytesWritten = fwrite(ptr, 1, count, fp);
+				if(*bytesWritten <= count && *bytesWritten != EOF)
+				{
+					rc = PD_OK;
+				}
+				else
+				{
+					dprintf("Failed to append contents to file\n");
+					rc = PD_FAILED_TO_APPEND_FILE;
+				}
+			}
+			else
+			{
+				dprintf("Failure fseek failed for file number %d\n", pdFileNumber);
+				rc = PD_FAILURE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+		else
+		{
+			dprintf("Failed mutex pdSapiFileMutex[%d] is busy\n", pdFileNumber);
+			rc = PD_RESOURCE_BUSY;
+		}
+	}
+	else
+	{
+		dprintf("Failed, file pointer is NULL to append\n");
+		rc = PD_EINVAL;
+	}
+
+	return rc;
+}
+
+/*==============================================================================
+* @START
+* Function:pdSapiFile_flush
+* IN : FILE *fp - pointer to file.
+* 		int pdFileNumber	-	Unique file number to every file.
+* OUT : None
+* PRE : Below APIs to be called before pdSapiFile_read()
+* 		pdSapiFile_init()
+* 		pdSapiFile_open()
+* POST : None
+* RETURN :
+*	   PD_OK	-	on success
+*	   PD_FALIURE	-	on failure
+*	   PD_RESOURCE_BUSY	-	 if mutex is acquired by other thread or process.
+*	   PD_EINVAL	-	Invalid argument.
+* INFO : Flush the file.
+
+* @END
+*============================================================================*/
+
+int pdSapiFile_flush(FILE * stream, int pdFileNumber)
+{
+	int rc = PD_FAILURE, returnValue=PD_FAILURE;
+	if(stream != NULL)
+	{
+		returnValue = pdSapiMutex_lock(&pdSapiFileMutex[pdFileNumber]);
+		if(returnValue == ZERO)
+		{
+			returnValue = fflush(stream);
+			if(returnValue == ZERO)
+			{
+				rc = PD_OK;
+			}
+			else
+			{
+				dprintf("Failed to flush the file\n");
+				rc = PD_FAILED_TO_FLUSH_FILE;
+			}
+			pdSapiMutex_unlock(&pdSapiFileMutex[pdFileNumber]);
+		}
+	}
+	else
+	{
+		dprintf("Failed, file pointer is NULL to flush\n");
+		rc = PD_EINVAL;
+	}
+
+	return rc;
+}
+

@@ -1,0 +1,96 @@
+/******************************************************************************* 
+* FileName : pdSapiMutex.h
+* Description : This file contains sapi mutex function declarations, 
+* 		datastructures and external includes.
+*******************************************************************************/ 
+#ifndef PDSAPIMUTEX_H
+#define PDSAPIMUTEX_H
+/******************************************************************************* 
+*******************************************************************************/ 
+/*============================================================================*/ 
+/* INCLUDES */ 
+/*============================================================================*/ 
+#include <pthread.h>
+/*============================================================================*/ 
+/* EXPORTED TYPES & DEFINES */ 
+/*============================================================================*/ 
+
+/*============================================================================*/ 
+/* PRIVATE DATA */ 
+/* This private data is applicable only for internal header file */ 
+/*============================================================================*/ 
+/*============================================================================*/ 
+/* EXPORTED FUNCTION PROTOTYPES */ 
+/*============================================================================*/ 
+/*============================================================================== 
+* @START 
+* Function: pdSapiMutex_init
+* IN : mutex *mutex - Pointer to mutex structure
+* OUT : mutex initialised
+* PRE : None 
+* POST : None 
+* RETURN : 0- on success
+*          1 - on failure
+* INFO : Initialize a mutex. 
+* @END 
+*============================================================================*/
+int pdSapiMutex_init(pthread_mutex_t *mutex);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_lock
+* IN :  mutex *mutex - Mutex structure
+* OUT : mutex acquired
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Lock a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_lock(pthread_mutex_t *mutex);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_unlock
+* IN :  mutex *mutex - Pointer to mutex datastructure
+* OUT : mutex released
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Unlock a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_unlock(pthread_mutex_t *mutex);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_trylock
+* IN : mutex *mutex - Pointer to mutex datastructure
+* OUT : mutex tried to acquire
+* PRE : None 
+* POST : None 
+* RETURN : 0 - On success
+*          1 - On failure
+* INFO : Try locking a mutex. 
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_trylock(pthread_mutex_t *mutex);
+
+/*============================================================================== 
+* @START 
+* Function:pdSapiMutex_destroy
+* IN :  mutex *mutex - Pointer to mutex datastructure
+* OUT : mutex released
+* PRE : None 
+* POST : None 
+* RETURN : None
+* INFO : Destroy a mutex.
+
+* @END 
+*============================================================================*/
+int pdSapiMutex_destroy(pthread_mutex_t *mutex);
+
+#endif
